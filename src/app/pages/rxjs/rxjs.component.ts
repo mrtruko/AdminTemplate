@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
-import { Observable } from 'rxjs';
-import { retry } from 'rxjs/operators'
+import { Observable, interval } from 'rxjs';
+import { retry, take, map } from 'rxjs/operators';
 @Component({
   selector: 'app-rxjs',
   templateUrl: './rxjs.component.html',
@@ -9,28 +9,38 @@ import { retry } from 'rxjs/operators'
 export class RxjsComponent {
 
   constructor() {
-    let i = 0;
-    const $obs = new Observable( observer => {
-      const intervalo = setInterval(() => {
-        i++;
-        observer.next(i);
-        if (i === 4){
-          clearInterval(intervalo);
-          observer.complete();
-        }
-        if (i === 2){
-          
-          observer.error('i llego al valor de 2');
-        }
-      }, 1000);
-    });
-    $obs.pipe(
-      retry()
-    ).subscribe(
-      valor => console.log('Subs', valor),
-      err => console.warn('Error:', err),
-      () =>  console.log('obs terminado'));
+    // this.retornaObservable().pipe(
+    //   retry()
+    // ).subscribe(
+    //   valor => console.log('Subs', valor),
+    //   err => console.warn('Error:', err),
+    //   () =>  console.log('obs terminado'));
+
+    this.retornaIntervalo().subscribe(console.log);
    }
 
+retornaIntervalo(): Observable<number>{
+  const $interval = interval(1000).pipe(
+    take(4),
+    map(valor => valor + 1));
+  return $interval;
+}
 
+retornaObservable(): Observable<number>{
+  let i = 0;
+  return new Observable<number>( observer => {
+    const intervalo = setInterval(() => {
+      i++;
+      observer.next(i);
+      if (i === 4){
+        clearInterval(intervalo);
+        observer.complete();
+      }
+      if (i === 2){
+        clearInterval(intervalo);
+        observer.error('i llego al valor de 2');
+      }
+    }, 1000);
+  });
+}
 }
